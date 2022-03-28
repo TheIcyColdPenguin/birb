@@ -19,7 +19,7 @@ pub enum SymbolKind {
     Assign,
     Plus,
     Semicolon,
-    Equality,
+    Equals,
 }
 
 #[derive(Debug, PartialEq)]

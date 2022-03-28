@@ -67,10 +67,11 @@ impl<'a> Tokenizer<'a> {
             '=' => match self.source.peek() {
                 Some('=') => {
                     self.source.next();
-                    SymbolKind::Equality
+                    SymbolKind::Equals
                 }
                 _ => SymbolKind::Assign,
             },
+            '+' => SymbolKind::Plus,
             ';' => SymbolKind::Semicolon,
             c => panic!("Unexpected character '{}'", c),
         })
