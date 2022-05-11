@@ -103,15 +103,9 @@ mod tests {
         let mut tokenizer = Tokenizer::new("    let x = r;");
         assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
-        assert_eq!(
-            tokenizer.next_token(),
-            TokenKind::Symbol(SymbolKind::Assign)
-        );
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("r".into()));
-        assert_eq!(
-            tokenizer.next_token(),
-            TokenKind::Symbol(SymbolKind::Semicolon)
-        );
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
 }
