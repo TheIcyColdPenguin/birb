@@ -16,11 +16,10 @@ pub enum LiteralKind {
 
 #[derive(Debug, PartialEq)]
 pub enum SymbolKind {
-    Assign,
-    Plus,
-    Semicolon,
-    Equals,
-
+    Assign,        // =
+    Plus,          // +
+    Semicolon,     // ;
+    Equals,        // ==
     OpenBraces,    // {
     CloseBraces,   // }
     OpenParens,    // (
