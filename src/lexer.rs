@@ -27,7 +27,7 @@ impl<'a> Tokenizer<'a> {
                     }
                     self.next_token()
                 }
-                c if chr.is_ascii_alphabetic() => self.parse_alphabetic_token(c),
+                c if chr.is_ascii_alphabetic() || chr == '_' => self.parse_alphabetic_token(c),
                 c if chr.is_ascii_punctuation() => self.parse_punctuation_token(c),
                 c => panic!("Unexpected character '{}'", c),
             },
@@ -144,9 +144,12 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
-        let mut tokenizer = Tokenizer::new("    let x");
+        let mut tokenizer = Tokenizer::new("    let _ = x;");
         assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
+        assert_eq!(tokenizer.next_token(), TokenKind::Ident("_".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
         let mut tokenizer = Tokenizer::new("    let x = r;");
