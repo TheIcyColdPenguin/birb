@@ -36,7 +36,7 @@ impl<'a> Tokenizer<'a> {
 
     fn read_while<P>(&mut self, start: char, p: P) -> String
     where
-        P: FnOnce(&char) -> bool + Copy,
+        P: Fn(&char) -> bool + Copy,
     {
         let mut word = String::from(start);
         while matches!(self.source.peek(), Some(c) if p(c)) {
