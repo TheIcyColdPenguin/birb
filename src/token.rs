@@ -20,6 +20,13 @@ pub enum SymbolKind {
     Plus,
     Semicolon,
     Equals,
+
+    OpenBraces,    // {
+    CloseBraces,   // }
+    OpenParens,    // (
+    CloseParens,   // )
+    OpenBrackets,  // [
+    CloseBrackets, // ]
 }
 
 #[derive(Debug, PartialEq)]

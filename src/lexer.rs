@@ -74,6 +74,13 @@ impl<'a> Tokenizer<'a> {
             '+' => SymbolKind::Plus,
             ';' => SymbolKind::Semicolon,
 
+            '{' => SymbolKind::OpenBraces,
+            '}' => SymbolKind::CloseBraces,
+            '(' => SymbolKind::OpenParens,
+            ')' => SymbolKind::CloseParens,
+            '[' => SymbolKind::OpenBrackets,
+            ']' => SymbolKind::CloseBrackets,
+
             '\'' => return self.parse_string_literal(start),
             '"' => return self.parse_string_literal(start),
             c => panic!("Unexpected character '{}'", c),
