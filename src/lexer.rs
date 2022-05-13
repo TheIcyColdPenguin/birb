@@ -73,8 +73,50 @@ impl<'a> Tokenizer<'a> {
             },
             '+' => SymbolKind::Plus,
             ';' => SymbolKind::Semicolon,
+
+            '\'' => return self.parse_string_literal(start),
+            '"' => return self.parse_string_literal(start),
             c => panic!("Unexpected character '{}'", c),
         })
+    }
+
+    fn parse_string_literal(&mut self, start: char) -> TokenKind {
+        let mut word = String::new();
+        let mut escaped = false;
+
+        while let Some(c) = self.source.next() {
+            match c {
+                '\\' => {
+                    if escaped {
+                        word.push('\\');
+                        escaped = false;
+                    } else {
+                        escaped = true;
+                    }
+                }
+                c if c == start => {
+                    if escaped {
+                        word.push(start);
+                        escaped = false;
+                    } else {
+                        break;
+                    }
+                }
+                c => {
+                    if escaped {
+                        panic!("TODO: Allow escape characters")
+                    } else {
+                        word.push(c)
+                    }
+                }
+            }
+        }
+
+        if escaped {
+            panic!("Unterminated string")
+        }
+
+        TokenKind::Literal(LiteralKind::String(word))
     }
 }
 
@@ -105,6 +147,18 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("r".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("\"hmm\"");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("let x = \"o\";");
+        assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
+        assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("o".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }

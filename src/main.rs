@@ -5,7 +5,7 @@ use lexer::Tokenizer;
 use token::TokenKind::Eof;
 
 fn main() -> () {
-    let mut tokenizer = Tokenizer::new("let x = hello;");
+    let mut tokenizer = Tokenizer::new("let x = \"hello\" + \" world!\";");
     loop {
         let token = tokenizer.next_token();
         if token == Eof {
