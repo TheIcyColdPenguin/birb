@@ -21,14 +21,14 @@ impl<'a> Tokenizer<'a> {
         match self.source.next() {
             None => TokenKind::Eof,
             Some(chr) => match chr {
-                _ if chr.is_whitespace() => {
-                    while matches!(self.source.peek(), Some(c) if c.is_whitespace()) {
+                c if c.is_whitespace() => {
+                    while matches!(self.source.peek(), Some(ch) if ch.is_whitespace()) {
                         self.source.next();
                     }
                     self.next_token()
                 }
-                c if chr.is_ascii_alphabetic() || chr == '_' => self.parse_alphabetic_token(c),
-                c if chr.is_ascii_punctuation() => self.parse_punctuation_token(c),
+                c if c.is_ascii_alphabetic() || c == '_' => self.parse_alphabetic_token(c),
+                c if c.is_ascii_punctuation() => self.parse_punctuation_token(c),
                 c => panic!("Unexpected character '{}'", c),
             },
         }
@@ -50,7 +50,8 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn parse_alphabetic_token(&mut self, start: char) -> TokenKind {
-        let token = self.read_while(start, |c| c.is_ascii_alphabetic() || *c == '_');
+        let token =
+            self.read_while(start, |c| c.is_ascii_alphabetic() || c.is_ascii_digit() || *c == '_');
 
         match token.as_str() {
             "let" => TokenKind::Keyword(KeywordKind::Let),
@@ -166,9 +167,9 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
-        let mut tokenizer = Tokenizer::new("let x = \"o\";");
+        let mut tokenizer = Tokenizer::new("let x1 = \"o\";");
         assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
-        assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Ident("x1".into()));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("o".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
