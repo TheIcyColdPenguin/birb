@@ -12,6 +12,7 @@ pub enum TokenKind {
 #[derive(Debug, PartialEq)]
 pub enum LiteralKind {
     String(String),
+    Number(f64),
 }
 
 #[derive(Debug, PartialEq)]

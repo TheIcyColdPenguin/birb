@@ -29,6 +29,7 @@ impl<'a> Tokenizer<'a> {
                 }
                 c if c.is_ascii_alphabetic() || c == '_' => self.parse_alphabetic_token(c),
                 c if c.is_ascii_punctuation() => self.parse_punctuation_token(c),
+                c if c.is_ascii_digit() => self.parse_numeric_literal(c),
                 c => panic!("Unexpected character '{}'", c),
             },
         }
@@ -133,6 +134,52 @@ impl<'a> Tokenizer<'a> {
 
         TokenKind::Literal(LiteralKind::String(word))
     }
+
+    fn parse_numeric_literal(&mut self, start: char) -> TokenKind {
+        let mantissa = self.read_while(start, |c| c.is_ascii_digit());
+
+        let decimal = match self.source.peek() {
+            Some(&'.') => {
+                let c = self.source.next().unwrap();
+                let decimal = self.read_while(c, |ch| ch.is_ascii_digit());
+                if decimal == "." {
+                    panic!("Unexpected character '.'");
+                } else {
+                    decimal
+                }
+            }
+            _ => "".into(),
+        };
+
+        let exponent = if matches!(self.source.peek(), Some(&'e') | Some(&'E')) {
+            let mut c = self.source.next().unwrap();
+
+            let mut exp = String::new();
+
+            if let Some(next_ch) = self.source.peek() {
+                if *next_ch == '+' || *next_ch == '-' {
+                    exp.push(c);
+                    c = self.source.next().unwrap();
+                }
+            }
+            let next_digits = dbg!(self.read_while(c, |ch| ch.is_ascii_digit()));
+
+            if next_digits == c.to_string() {
+                panic!("Unexpected character '{}'", c);
+            } else {
+                exp.push_str(&next_digits);
+                exp
+            }
+        } else {
+            "".into()
+        };
+
+        let mut number = mantissa;
+        number.push_str(&decimal);
+        number.push_str(&exponent);
+
+        TokenKind::Literal(LiteralKind::Number(number.parse().unwrap()))
+    }
 }
 
 #[cfg(test)]
@@ -179,6 +226,24 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("o".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("1.01e3");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1010.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("1e3");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1000.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("1e+3");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1000.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("3.14e-3+4");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(0.00314)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Plus));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(4.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
 
     #[test]
@@ -216,5 +281,19 @@ mod tests {
     fn it_panics_unexpected_eof_due_to_escaping() {
         let mut tokenizer = Tokenizer::new(r#""hmm\"#);
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
+    }
+
+    #[test]
+    #[should_panic(expected = "Unexpected character 'e")]
+    fn it_panics_no_digits_for_exponent() {
+        let mut tokenizer = Tokenizer::new("1.3e");
+        tokenizer.next_token();
+    }
+
+    #[test]
+    #[should_panic(expected = "Unexpected character '-")]
+    fn it_panics_sign_but_no_digits_for_exponent() {
+        let mut tokenizer = Tokenizer::new("1.3e-");
+        tokenizer.next_token();
     }
 }
