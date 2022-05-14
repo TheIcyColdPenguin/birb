@@ -90,6 +90,7 @@ impl<'a> Tokenizer<'a> {
     fn parse_string_literal(&mut self, start: char) -> TokenKind {
         let mut word = String::new();
         let mut escaped = false;
+        let mut open = true;
 
         while let Some(c) = self.source.next() {
             match c {
@@ -106,6 +107,7 @@ impl<'a> Tokenizer<'a> {
                         word.push(start);
                         escaped = false;
                     } else {
+                        open = false;
                         break;
                     }
                 }
@@ -119,7 +121,7 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        if escaped {
+        if open {
             panic!("Unterminated string")
         }
 
@@ -171,5 +173,42 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("o".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+    }
+
+    #[test]
+    #[should_panic(expected = "Unexpected character '?'")]
+    fn it_panics_unexpected_char() {
+        let mut tokenizer = Tokenizer::new("\"hmm\" ?");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
+        tokenizer.next_token();
+    }
+
+    #[test]
+    #[should_panic(expected = "Unexpected character 'é'")]
+    fn it_panics_unexpected_non_unicode_char() {
+        let mut tokenizer = Tokenizer::new("\"hmm\" é");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
+        tokenizer.next_token();
+    }
+
+    #[test]
+    #[should_panic(expected = "TODO: Allow escape characters")]
+    fn it_panics_escape_char_in_string() {
+        let mut tokenizer = Tokenizer::new(r#""hmm\n ok""#);
+        tokenizer.next_token();
+    }
+
+    #[test]
+    #[should_panic(expected = "Unterminated string")]
+    fn it_panics_unexpected_eof() {
+        let mut tokenizer = Tokenizer::new(r#""hmm"#);
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
+    }
+
+    #[test]
+    #[should_panic(expected = "Unterminated string")]
+    fn it_panics_unexpected_eof_due_to_escaping() {
+        let mut tokenizer = Tokenizer::new(r#""hmm\"#);
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
     }
 }
