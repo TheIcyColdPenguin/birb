@@ -73,7 +73,12 @@ impl<'a> Tokenizer<'a> {
                 _ => SymbolKind::Assign,
             },
             '+' => SymbolKind::Plus,
+            '-' => SymbolKind::Minus,
+            '*' => SymbolKind::Mult,
+            '/' => SymbolKind::Div, // TODO: Add comment functionality
             ';' => SymbolKind::Semicolon,
+            '>' => SymbolKind::GreaterThan,
+            '<' => SymbolKind::LessThan,
 
             '{' => SymbolKind::OpenBraces,
             '}' => SymbolKind::CloseBraces,

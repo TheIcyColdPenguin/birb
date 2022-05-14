@@ -18,6 +18,11 @@ pub enum LiteralKind {
 pub enum SymbolKind {
     Assign,        // =
     Plus,          // +
+    Minus,         // -
+    Mult,          // *
+    Div,           // /
+    GreaterThan,   // >
+    LessThan,      // <
     Semicolon,     // ;
     Equals,        // ==
     OpenBraces,    // {
