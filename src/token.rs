@@ -6,6 +6,7 @@ pub enum TokenKind {
     Literal(LiteralKind),
     #[allow(unused)]
     Whitespace,
+    Comment(String),
     Eof,
 }
 

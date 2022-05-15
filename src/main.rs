@@ -9,10 +9,11 @@ fn main() -> () {
         r#"let x = "huh";
 print(x);
 
-
+# Declaring and initialising variables
 let x = 1;
 let y = 2.1;
 
+# Contitionals
 if x > y {
     print("\"{x}\" is greater than \"{y}\"");
 } elif x == y {

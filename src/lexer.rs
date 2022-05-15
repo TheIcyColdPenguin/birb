@@ -82,7 +82,7 @@ impl<'a> Tokenizer<'a> {
                 }
                 _ => SymbolKind::Mult,
             },
-            '/' => SymbolKind::Div, // TODO: Add comment functionality
+            '/' => SymbolKind::Div,
             ':' => SymbolKind::Colon,
             ';' => SymbolKind::Semicolon,
             ',' => SymbolKind::Comma,
@@ -95,6 +95,18 @@ impl<'a> Tokenizer<'a> {
             ')' => SymbolKind::CloseParens,
             '[' => SymbolKind::OpenBrackets,
             ']' => SymbolKind::CloseBrackets,
+            '#' => {
+                let mut content = String::new();
+                while let Some(c) = self.source.peek() {
+                    if *c == '\n' {
+                        break;
+                    }
+                    content.push(*c);
+                    self.source.next();
+                }
+
+                return TokenKind::Comment(content);
+            }
 
             '\'' => return self.parse_string_literal(start),
             '"' => return self.parse_string_literal(start),
@@ -300,6 +312,25 @@ mod tests {
     fn it_gets_next_token_float_literal_with_exponent_2() {
         let mut tokenizer = Tokenizer::new("1e3");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1000.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+    }
+
+    #[test]
+    fn it_gets_next_token_comments() {
+        let mut tokenizer = Tokenizer::new(
+            "
+        1 + 1
+        # a comment 1 - 1
+        2 * 2
+        ",
+        );
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(1)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Plus));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(1)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Comment(" a comment 1 - 1".into()));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(2)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Mult));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(2)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
 
