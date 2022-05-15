@@ -128,7 +128,15 @@ impl<'a> Tokenizer<'a> {
                 }
                 c => {
                     if escaped {
-                        panic!("TODO: Allow escape characters")
+                        println!("{}", c);
+                        match c {
+                            'n' => word.push('\n'),
+                            'r' => word.push('\r'),
+                            't' => word.push('\t'),
+                            '0' => word.push('\0'),
+                            _ => panic!("Unrecognized escape character '\\{}'", c),
+                        }
+                        escaped = false;
                     } else {
                         word.push(c)
                     }
@@ -204,17 +212,20 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_whitespace_string() {
         let mut tokenizer = Tokenizer::new("    ");
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_whitespace_before_token() {
         let mut tokenizer = Tokenizer::new("    let");
         assert_eq!(tokenizer.next_token(), TokenKind::Keyword(KeywordKind::Let));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_whitespace_before_statement_with_underscore_variable() {
         let mut tokenizer = Tokenizer::new("    let _ = x;");
@@ -233,6 +244,7 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_number_expression() {
         let mut tokenizer = Tokenizer::new("4 ** 3.0");
@@ -241,12 +253,24 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(3.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
-    fn it_gets_next_tokene_string() {
+    fn it_gets_next_token_string() {
         let mut tokenizer = Tokenizer::new("\"hmm\"");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::String("hmm".into())));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
+    #[test]
+    fn it_gets_next_token_escape_character() {
+        let mut tokenizer = Tokenizer::new(r#""hmm\n ok""#);
+        assert_eq!(
+            tokenizer.next_token(),
+            TokenKind::Literal(LiteralKind::String("hmm\n ok".into()))
+        );
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+    }
+
     #[test]
     fn it_gets_next_token_statement_with_string_literal() {
         let mut tokenizer = Tokenizer::new("let x1 = \"o\";");
@@ -257,30 +281,35 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_int_literal() {
         let mut tokenizer = Tokenizer::new("1223");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(1223)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_float_literal_with_exponent() {
         let mut tokenizer = Tokenizer::new("1.01e3");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1010.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_float_literal_with_exponent_2() {
         let mut tokenizer = Tokenizer::new("1e3");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1000.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_float_literal_with_exponent_with_sign() {
         let mut tokenizer = Tokenizer::new("1e+3");
         assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1000.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
+
     #[test]
     fn it_gets_next_token_float_literal_with_exponent_in_expression() {
         let mut tokenizer = Tokenizer::new("3.14e-3+4");
@@ -307,9 +336,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "TODO: Allow escape characters")]
+    #[should_panic(expected = "Unrecognized escape character '\\f'")]
     fn it_panics_escape_char_in_string() {
-        let mut tokenizer = Tokenizer::new(r#""hmm\n ok""#);
+        let mut tokenizer = Tokenizer::new(r#""hmm\f ok""#);
         tokenizer.next_token();
     }
 
