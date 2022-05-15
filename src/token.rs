@@ -24,6 +24,7 @@ pub enum SymbolKind {
     Div,           // /
     GreaterThan,   // >
     LessThan,      // <
+    Colon,         // :
     Semicolon,     // ;
     Equals,        // ==
     OpenBraces,    // {
