@@ -23,10 +23,12 @@ pub enum SymbolKind {
     Minus,         // -
     Mult,          // *
     Div,           // /
+    Pow,           // **
     GreaterThan,   // >
     LessThan,      // <
     Colon,         // :
     Semicolon,     // ;
+    Comma,         // ,
     Equals,        // ==
     OpenBraces,    // {
     CloseBraces,   // }

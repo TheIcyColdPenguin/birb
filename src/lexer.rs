@@ -75,10 +75,17 @@ impl<'a> Tokenizer<'a> {
             },
             '+' => SymbolKind::Plus,
             '-' => SymbolKind::Minus,
-            '*' => SymbolKind::Mult,
+            '*' => match self.source.peek() {
+                Some('*') => {
+                    self.source.next();
+                    SymbolKind::Pow
+                }
+                _ => SymbolKind::Mult,
+            },
             '/' => SymbolKind::Div, // TODO: Add comment functionality
             ':' => SymbolKind::Colon,
             ';' => SymbolKind::Semicolon,
+            ',' => SymbolKind::Comma,
             '>' => SymbolKind::GreaterThan,
             '<' => SymbolKind::LessThan,
 
@@ -210,6 +217,12 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Assign));
         assert_eq!(tokenizer.next_token(), TokenKind::Ident("x".into()));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
+        let mut tokenizer = Tokenizer::new("4 ** 3.0˝");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(4)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Pow));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(3.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
         let mut tokenizer = Tokenizer::new("    let x = r;");
