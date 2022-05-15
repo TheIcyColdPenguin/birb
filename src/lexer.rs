@@ -175,11 +175,15 @@ impl<'a> Tokenizer<'a> {
             "".into()
         };
 
+        if decimal == "" && exponent == "" {
+            return TokenKind::Literal(LiteralKind::Int(mantissa.parse().unwrap()));
+        }
+
         let mut number = mantissa;
         number.push_str(&decimal);
         number.push_str(&exponent);
 
-        TokenKind::Literal(LiteralKind::Number(number.parse().unwrap()))
+        TokenKind::Literal(LiteralKind::Float(number.parse().unwrap()))
     }
 }
 
@@ -228,22 +232,26 @@ mod tests {
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Semicolon));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
+        let mut tokenizer = Tokenizer::new("1223");
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(1223)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Eof);
+
         let mut tokenizer = Tokenizer::new("1.01e3");
-        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1010.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1010.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
         let mut tokenizer = Tokenizer::new("1e3");
-        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1000.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1000.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
         let mut tokenizer = Tokenizer::new("1e+3");
-        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(1000.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(1000.0)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
 
         let mut tokenizer = Tokenizer::new("3.14e-3+4");
-        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(0.00314)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Float(0.00314)));
         assert_eq!(tokenizer.next_token(), TokenKind::Symbol(SymbolKind::Plus));
-        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Number(4.0)));
+        assert_eq!(tokenizer.next_token(), TokenKind::Literal(LiteralKind::Int(4)));
         assert_eq!(tokenizer.next_token(), TokenKind::Eof);
     }
 
