@@ -22,9 +22,9 @@ if x > y {
 }
 
 
-func fact(int n) does
+func fact(int n) {
     if n <= 1 { n } else { n * fact(n-1) }
-end
+}
 "#,
     );
     loop {
