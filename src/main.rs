@@ -22,7 +22,7 @@ if x > y {
 }
 
 
-func fact(int n) {
+func fact(int n): int {
     if n <= 1 { n } else { n * fact(n-1) }
 }
 "#,
